@@ -4,11 +4,10 @@
 ## Last updated 2023-07-23 (preprint submission version)
 
 ### ABSTRACT
-Classic life history theory makes generalized predictions about phenotypic correlations across large clades. Modern comparative tests of these correlations account for the underlying structure of phylogenetic trees. Yet neither life history theory nor phylogenetic comparative methods automatically specify how biological mechanisms generate correlations. This problem is evident in comparative analyses of birds. Birds show a strong correlation between body size and age at first reproduction, but do not actually grow larger if they delay reproduction. Instead, field studies raise the hypothesis that complex social contexts—especially cooperative breeding, coloniality, and lekking—generate diverse demands for behavioral development, which in turn result in delayed reproduction. Here, we support that hypothesis with a comparative dataset spanning 961 species in 155 avian families. Continuous (Ornstein-Uhlenbeck), discrete (hidden state Markov), and phylogenetic regression models revealed delayed reproduction in colonial birds, a weaker signal across cooperative birds, and the convergent evolution of sexual bimaturism in polygynous, lekking birds. These results show an association between social context, sex-specific developmental demands, and life history evolution in birds. We discuss how even statistically powerful phylogenetic regressions—whether focused on mass, lifespan, or our own broad social categories—can ultimately fail to model the history of life history evolution.
+Classic life history theory makes generalized predictions about phenotypic correlations across large clades. Modern comparative tests of these correlations account for the underlying structure of phylogenetic trees. Yet neither life history theory nor phylogenetic comparative methods automatically specify how biological mechanisms generate correlations. This problem is evident in comparative analyses of birds. Birds show a correlation between body size and age at first reproduction, but do not actually grow larger if they delay reproduction. Instead, field studies raise the hypothesis that social contexts—especially cooperative breeding, coloniality, and lekking—generate unique demands for behavioral development, which in turn result in delayed reproduction. Here, we support that hypothesis with a comparative dataset spanning 961 species in 155 avian families. Continuous (Ornstein-Uhlenbeck), discrete (hidden state Markov), and phylogenetic regression models revealed delayed reproduction in colonial birds, a weaker signal in cooperative birds, and the convergent evolution of sexual bimaturism in polygynous, lekking birds. These results show an association between diverse social contexts, sex-specific developmental demands, and life history evolution in birds. Considering this diversity, we discuss how even statistically powerful phylogenetic correlations—whether focused on mass, lifespan, or broad social categories—can ultimately fail to model the history of life history evolution.
 
 ### About this repository
-This repository contains all data and code necessary to generate manuscript results and figures. 
-Scripts can be run in order: 
+This repository contains all data and code necessary to generate manuscript results and figures.
 
 Data (in the Data/ directory):
 1. data_raw_2023-07-23.xlsx (raw data, including full age sources and text quotations)
@@ -23,9 +22,9 @@ Analysis scripts (in the Scripts/ directory):
 1. 1_wrangle_data.sh (wrangles main data file to clean version for analyses)
 2. 2_ou_models.sh (continuous evolutionary models in OUwie)
 3. 3_corhmm.sh (discrete evolutionary models in corHMM)
-4. 4_phyanova.sh (phylogenetic ANOVAs in phytools; requires OU model results)
+4. 4_phyanova.sh (phylogenetic ANOVAs in phytools; requires OU models results from Script 2)
 5. 5_pgls.sh (phylogenetic generalized least squares models in nlme)
-6. 6_tables_and_figures.sh (generates MS tables and figures)
+6. 6_tables_and_figures.sh (generates MS tables and figures; requires all results from Scripts 1-5)
 
 ### Software requirements
 Scripts are written for Unix bash (Ubuntu) and R v4.3.1. See scripts and manuscript for packages and software citations. Bash scripts were originally run with Yale HPC resources ([McClearly cluster] (https://docs.ycrc.yale.edu/clusters/mccleary/)) using [slurm](https://slurm.schedmd.com/documentation.html).
