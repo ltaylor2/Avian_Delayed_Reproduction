@@ -19,6 +19,10 @@ N_STARTS <- 10
 handlers(global=TRUE)
 handlers("progress")
 
+# Read in target variable
+args <- commandArgs(trailing=TRUE)
+VAR <- args[1]
+
 # Organizing data -------------------------------------
 
 cat("Organizing data.\n")
@@ -173,12 +177,12 @@ corhmmVar <- function(var) {
 
 # Run -------------------------------------
 
-cat("Beginning runs.\n")
-vars <- c("Alpha_F", "Alpha_M", "Min_Alpha_F", "Min_Alpha_M")
-results <- map_df(vars, corhmmVar)
+cat(paste0("Beginning run with variable", VAR, "\n"))
+results <- corhmmVar(VAR)
 
-cat("Done with runs. Saving all results to Output/results_corhmm.csv\n")
-write_csv(results, "Output/results_corhmm.csv")
+of <- paste0("Output/results_corhmm_", VAR, ".csv")
+cat(paste("Done with runs. Saving all results to", of, "\n"))
+write_csv(results, of)
 
 warnings()
 cat("Exiting.\n")

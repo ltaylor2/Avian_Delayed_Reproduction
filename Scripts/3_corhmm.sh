@@ -1,26 +1,23 @@
 #!/bin/bash
-#SBATCH -p week
-#SBATCH -c 64
-#SBATCH --mem-per-cpu 3000
-#SBATCH -t 7-00:00:00
-#SBATCH -J aa_3
-#SBATCH -o Output/Logs/sysout_aa_3.txt
-#SBATCH --mail-type ALL
 
 # Evolution of delayed reproduction in birds
 # Slurm script to estimate discrete markov model parameters using R
-# OUTPUT: Writes Output/results_corhmm.csv
+# Submits jobs via deadSimpleQueue
+# OUTPUT: Writes Output/results_corhmm_*VARS.csv
 # L.U.T. updated 2023-07-19
-
-module load miniconda
-conda activate avesalpha
 
 echo "Starting Scripts/3_corhmm.sh"
 
-echo "Testing discrete evolutionary models with Scripts/corhmm.r"
+JOBTXT=""
+for VAR in "Alpha_F" "Alpha_M" "Min_Alpha_F" "Min_Alpha_M"
+do
+    JOBTXT+="module load miniconda; conda activate avesalpha; "
+    JOBTXT+="export OMP_NUM_THREADS=1; export R_PROGRESSR_ENABLE=TRUE; "
+    JOBTXT+="Rscript --slave Scripts/corhmm.r $VAR\n"
+done
+echo -e $JOBTXT > JOBLIST_corhmm.txt
 
-export OMP_NUM_THREADS=1
-export R_PROGRESSR_ENABLE=TRUE
-Rscript --slave Scripts/corhmm.r
+module load dSQ
+dsq --job-file JOBLIST_corhmm.txt -c 64 --mem-per-cpu 2000 -t 2-00:00:00 --mail-type ALL --submit --status-dir Output/Logs
 
-echo "Done with Scripts/3_corhmm.sh"
+echo "Submitted corHMM jobs to run via dsq"

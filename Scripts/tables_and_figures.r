@@ -45,95 +45,95 @@ colours_pgls <- c("Mass-Cooperative"=colours_social[["Cooperative"]],
 
 # Tables and Figures -------------------------------------
 
-# # FIGURES 1,S1----------------------------------- 
-# # Tree examples
-# # FIGURES 1,S1 ----------------------------------- 
+# FIGURES 1,S1----------------------------------- 
+# Tree examples
+# FIGURES 1,S1 ----------------------------------- 
 
-# # Custom function to map numeric states to a character
-# binStates <- function(state) {    
-#     if (state <= 1) { return ("A1") }
-#     else if (state == 2) { return ("B2")}
-#     return("C3More")
-# }
-# unbinStates <- function(state) {
-#     if (state == "A1") { return ("1") }
-#     else if (state == "B2") { return ("2")}
-#     else if (state == "C3More") { return("3+") }
-#     return("ERROR")
-# }
-# unmapCorHMMStates <- function(state) {
-#     if (state == 1 | state == 2) { return("A1") } 
-#     else if (state == 3 | state == 4) { return("B2") }
-#     else if (state == 5 | state == 6) { return("C3More") } 
-#     return("ERROR")
-# }
+# Custom function to map numeric states to a character
+binStates <- function(state) {    
+    if (state <= 1) { return ("A1") }
+    else if (state == 2) { return ("B2")}
+    return("C3More")
+}
+unbinStates <- function(state) {
+    if (state == "A1") { return ("1") }
+    else if (state == "B2") { return ("2")}
+    else if (state == "C3More") { return("3+") }
+    return("ERROR")
+}
+unmapCorHMMStates <- function(state) {
+    if (state == 1 | state == 2) { return("A1") } 
+    else if (state == 3 | state == 4) { return("B2") }
+    else if (state == 5 | state == 6) { return("C3More") } 
+    return("ERROR")
+}
 
-# plotAlphaTree <- function(var=c("Alpha_F", "Alpha_M")) {
-#     # Read in example tree for plotting
-#     if (var == "Alpha_F") {
-#         treeFile <- "Data/randomMainTree_F.nex"
-#     } else if (var == "Alpha_M") {
-#         treeFile <- "Data/randomMainTree_M.nex"
-#     }
-#     tree <- read.nexus(treeFile)
+plotAlphaTree <- function(var=c("Alpha_F", "Alpha_M")) {
+    # Read in example tree for plotting
+    if (var == "Alpha_F") {
+        treeFile <- "Data/randomMainTree_F.nex"
+    } else if (var == "Alpha_M") {
+        treeFile <- "Data/randomMainTree_M.nex"
+    }
+    tree <- read.nexus(treeFile)
     
-#     # Prepare data for corHMM ancestral state reconstruction
-#     d <- read_tsv("Data/data_clean.tsv", show_col_types=FALSE)
-#     social <- map_chr(tree$tip.label, ~d[d$Label_BirdTree==.,"Social_Context"][[1]])
-#     names(social) <- tree$tip.label
-#     binnedSocial <- ifelse(social%in%c("Cooperative", "Colony", "Lek"), "2Social", "1Other")
-#     names(binnedSocial) <- tree$tip.label
-#     dep <- map_chr(tree$tip.label, ~binStates(d[d$Label_BirdTree==., var][[1]]))
-#     names(dep) <- tree$tip.label
-#     d_sorted <- data.frame(Label=tree$tip.label, dep=dep, Social=binnedSocial)
-#     colnames(d_sorted)[2] <- var
+    # Prepare data for corHMM ancestral state reconstruction
+    d <- read_tsv("Data/data_clean.tsv", show_col_types=FALSE)
+    social <- map_chr(tree$tip.label, ~d[d$Label_BirdTree==.,"Social_Context"][[1]])
+    names(social) <- tree$tip.label
+    binnedSocial <- ifelse(social%in%c("Cooperative", "Colony", "Lek"), "2Social", "1Other")
+    names(binnedSocial) <- tree$tip.label
+    dep <- map_chr(tree$tip.label, ~binStates(d[d$Label_BirdTree==., var][[1]]))
+    names(dep) <- tree$tip.label
+    d_sorted <- data.frame(Label=tree$tip.label, dep=dep, Social=binnedSocial)
+    colnames(d_sorted)[2] <- var
 
-#     # Use corHMM for ancestral state reconstruction under the "independent"
-#     #   3 state age model
-#     sm_1 <- getStateMat4Dat(data=d_sorted, model="ARD", dual=FALSE, indep=TRUE)$rate.mat |>
-#         dropStateMatPars(c(2, 5))
-#     model_onerate_independent <- corHMM(phy=tree, data=d_sorted, 
-#                                         node.states="joint", nstarts=1, n.cores=1, 
-#                                         rate.cat=1, rate.mat=sm_1)
+    # Use corHMM for ancestral state reconstruction under the "independent"
+    #   3 state age model
+    sm_1 <- getStateMat4Dat(data=d_sorted, model="ARD", dual=FALSE, indep=TRUE)$rate.mat |>
+        dropStateMatPars(c(2, 5))
+    model_onerate_independent <- corHMM(phy=tree, data=d_sorted, 
+                                        node.states="joint", nstarts=1, n.cores=1, 
+                                        rate.cat=1, rate.mat=sm_1)
 
-#     # Extract node ancestral states from the corHMM results 
-#     ases <- tibble(Node_Alpha=model_onerate_independent$states) |>
-#          mutate(Node_Alpha = map_chr(Node_Alpha, unmapCorHMMStates)) |>
-#          mutate(node = row_number() + length(tree$tip.label), .before=1)
+    # Extract node ancestral states from the corHMM results 
+    ases <- tibble(Node_Alpha=model_onerate_independent$states) |>
+         mutate(Node_Alpha = map_chr(Node_Alpha, unmapCorHMMStates)) |>
+         mutate(node = row_number() + length(tree$tip.label), .before=1)
     
-#     gtree <- ggtree(tree, layout="fan", aes(colour=Alpha), linewidth=0.3)
-#     gtree$data <- gtree$data |>
-#                mutate(Tip_Social_Context=social[label]) |>
-#                mutate(Tip_Alpha=dep[label]) |>
-#                left_join(ases, by="node") |>
-#                left_join(d, by=c("label"="Label_BirdTree")) |>
-#                mutate(Alpha=ifelse(isTip, Tip_Alpha, Node_Alpha)) |>
-#                mutate(Alpha = map_chr(Alpha, unbinStates))
+    gtree <- ggtree(tree, layout="fan", aes(colour=Alpha), linewidth=0.3)
+    gtree$data <- gtree$data |>
+               mutate(Tip_Social_Context=social[label]) |>
+               mutate(Tip_Alpha=dep[label]) |>
+               left_join(ases, by="node") |>
+               left_join(d, by=c("label"="Label_BirdTree")) |>
+               mutate(Alpha=ifelse(isTip, Tip_Alpha, Node_Alpha)) |>
+               mutate(Alpha = map_chr(Alpha, unbinStates))
 
-#     # Source the phylopic image data
-#     source("Data/tree_images.r")
-#     orderLabels <- getOrderLabels(gtree, d, tree)
+    # Source the phylopic image data
+    source("Data/tree_images.r")
+    orderLabels <- getOrderLabels(gtree, d, tree)
 
-#     plot <- gtree + 
-#         geom_tippoint(data=filter(gtree$data, Tip_Social_Context != "Other"), 
-#                       aes(fill=Tip_Social_Context), 
-#                       position=position_nudge(x=3),
-#                       size=0.8, colour="transparent", shape=21) +
-#         geom_cladelab(data=orderLabels,
-#                       geom="phylopic",
-#                       mapping=aes(node=Parent_Node, 
-#                                   label=Blank, 
-#                                   image=Phylo_ID),
-#                       barcolour=NA,
-#                       imagesize=orderLabels$Image_Size,
-#                       imagecolour="black",
-#                       alpha=0.3,
-#                       offset=18) +
-#         scale_colour_manual(values=colours_alpha) +
-#         scale_fill_manual(values=colours_social) +
-#         guides(colour="none", fill="none")
-#     return(plot)
-# }
+    plot <- gtree + 
+        geom_tippoint(data=filter(gtree$data, Tip_Social_Context != "Other"), 
+                      aes(fill=Tip_Social_Context), 
+                      position=position_nudge(x=3),
+                      size=0.8, colour="transparent", shape=21) +
+        geom_cladelab(data=orderLabels,
+                      geom="phylopic",
+                      mapping=aes(node=Parent_Node, 
+                                  label=Blank, 
+                                  image=Phylo_ID),
+                      barcolour=NA,
+                      imagesize=orderLabels$Image_Size,
+                      imagecolour="black",
+                      alpha=0.3,
+                      offset=18) +
+        scale_colour_manual(values=colours_alpha) +
+        scale_fill_manual(values=colours_social) +
+        guides(colour="none", fill="none")
+    return(plot)
+}
 
 # treePlot_F <- plotAlphaTree("Alpha_F")
 # ggsave(treePlot_F, file="Plots/treeplot_Alpha_F.png", width=5, height=5)
@@ -183,22 +183,22 @@ TABLE_S1 <- read_csv("Output/results_ou_models.csv", show_col_types=FALSE) |>
          mutate(Theta_Name = map2_chr(Theta_Num, Theta_Names, ~ str_split_1(.y,";")[.x])) |>
          group_by(Variable, Model, Theta_Name) |>
          summarize(.groups="keep",
-                   Median_Alpha=median(Alpha),
-                   Low_Alpha=quantile(Alpha, 0.05, na.rm=TRUE),
-                   High_Alpha=quantile(Alpha, 0.95, na.rm=TRUE),
                    Median_Sigma_Sq=median(Sigma_Sq),
                    Low_Sigma_Sq=quantile(Sigma_Sq, 0.05, na.rm=TRUE),
                    High_Sigma_Sq=quantile(Sigma_Sq, 0.95, na.rm=TRUE),                       
+                   Median_Alpha=median(Alpha),
+                   Low_Alpha=quantile(Alpha, 0.05, na.rm=TRUE),
+                   High_Alpha=quantile(Alpha, 0.95, na.rm=TRUE),
                    Median_Theta=median(Theta_Value),
                    Low_Theta=quantile(Theta_Value, 0.05, na.rm=TRUE),
                    High_Theta=quantile(Theta_Value, 0.95, na.rm=TRUE)) |>
-         mutate(Alpha = paste0(round(Median_Alpha,2)," (",round(Low_Alpha,2),", ",round(High_Alpha,2),")"),
-                Sigma_Sq = paste0(round(Median_Sigma_Sq,2)," (",round(Low_Sigma_Sq,2),", ",round(High_Sigma_Sq,2),")"),         
+         mutate(Sigma_Sq = paste0(round(Median_Sigma_Sq,2)," (",round(Low_Sigma_Sq,2),", ",round(High_Sigma_Sq,2),")"),         
+                Alpha = paste0(round(Median_Alpha,2)," (",round(Low_Alpha,2),", ",round(High_Alpha,2),")"),
                 Theta_Value = paste0(round(Median_Theta,2)," (",round(Low_Theta,2),", ",round(High_Theta,2),")")) |>
          pivot_wider(id_cols=c(Variable, Model, Alpha, Sigma_Sq), names_from=Theta_Name, values_from=Theta_Value) |>
          ungroup() |>
          mutate(across(Alpha:Social, ~ifelse(is.na(.), "", .))) |>
-         select(Variable, Model, Alpha, Sigma_Sq, All, Other, Cooperative, Colony, Lek, Social) |>
+         select(Variable, Model, Sigma_Sq, Alpha, All, Other, Cooperative, Colony, Lek, Social) |>
          arrange(Variable, Model) 
 
 write_tsv(TABLE_S1, "Output/TABLE_S1.tsv")
@@ -206,6 +206,10 @@ write_tsv(TABLE_S1, "Output/TABLE_S1.tsv")
 # TABLE 2 ----------------------------------- 
 # Discrete evolutionary model comparisons
 # TABLE 2 ----------------------------------- 
+
+corhmmFiles <- list.files("Output", full.names=TRUE) %>%
+            .[grepl("_corhmm_", .)]
+
 classifyModel <- function(hidden1, dependence) {
     if (hidden1==1 & dependence == "Independent") {
         return("H1-Independent")
@@ -221,7 +225,7 @@ classifyModel <- function(hidden1, dependence) {
 
 discreteModelOrder <- c("H1-Independent", "H1-Dependent",
                         "H2-Independent", "H2-Dependent")
-TABLE_2 <- read_csv("Output/results_corhmm.csv", show_col_types=FALSE) |> 
+TABLE_2 <- list_rbind(map(corhmmFiles, ~read_csv(., show_col_types=FALSE))) |> 
         mutate(Model = map2_chr(HiddenStates_T1, Dependence, classifyModel)) |>
         mutate(Model = factor(Model, levels=discreteModelOrder)) |>
         select(Variable, Model, Iteration, AIC, AICc) |>
@@ -270,7 +274,8 @@ write_tsv(TABLE_3, "Output/TABLE_3.tsv")
 # TABLE 4 ----------------------------------- 
 # PGLS results
 # TABLE 4 ----------------------------------- 
-modelOrder <- c("Social", "Mass-All", "Social+Mass", "Social*Mass")
+modelOrder <- c("Social", "Mass-All", "Social+Mass", "Social*Mass", 
+                "Mass-Cooperative", "Mass-Colony", "Mass-Lek")
 
 TABLE_4 <- read_csv("Output/results_pgls.csv", col_types=c("cccnnnnnnnnnnnnnnnnnnnnn")) |>
         filter(Model %in% c("Mass-All", "Social", "Social+Mass", "Social*Mass")) |>
@@ -304,7 +309,7 @@ formatEstimates <- function(median, low, high, sf) {
 }
 
 TABLE_S5 <- read_csv("Output/results_pgls.csv", col_types=c("cccnnnnnnnnnnnnnnnnnnnnn")) |>
-         filter(Model %in% c("Mass-All", "Social", "Social+Mass", "Social*Mass")) |>
+         filter(Model %in% c("Social", "Mass-All", "Social+Mass", "Social*Mass")) |>
          mutate(Model = factor(Model, levels=modelOrder)) |>
          group_by(Variable, Correlation, Iteration) |>
          mutate(Delta_BIC = BIC - min(BIC)) |>
@@ -392,7 +397,7 @@ facetLabels <- c("F" = paste0("Female (n = ",
                               pglsNs[pglsNs$Model=="Mass-Lek" & pglsNs$Sex=="M","n"],
                               ")"))
 
-pglsPLabels <- TABLE_S5 |>
+pglsPLabels <- TABLE_S6 |>
             ungroup() |>
             filter(Variable %in% c("Alpha_Log_F", "Alpha_Log_M"),
                    Model=="Mass-Lek",
@@ -510,9 +515,9 @@ FIGURE_S3 <- ggplot(cohorts) +
                 axis.text.y=element_text(size=6))
 ggsave(FIGURE_S3, file="Plots/FIGURE_S3.png", width=6, height=5)         
 
-# APPENDIX C tables ----------------------------------- 
+# APPENDIX III tables ----------------------------------- 
 # Discrete evolutionary model transition rates
-# APPENDIX C tables ----------------------------------- 
+# APPENDIX III tables ----------------------------------- 
 corHMMStatesFull <- c("1"="1 O",
                       "2"="1 S",
                       "3"="2 O",
@@ -520,7 +525,7 @@ corHMMStatesFull <- c("1"="1 O",
                       "5"="3+ O",
                       "6"="3+ S")
 
-TABLES_APPENDIX_III <- read_csv("Output/results_corhmm.csv", show_col_types=FALSE) |> 
+TABLES_APPENDIX_III <- list_rbind(map(corhmmFiles, ~read_csv(., show_col_types=FALSE))) |> 
                     filter(Variable %in% c("Alpha_F", "Alpha_M")) |>
                     mutate(Model = map2_chr(HiddenStates_T1, Dependence, classifyModel)) |>
                     mutate(Model = factor(Model, levels=discreteModelOrder)) |>
@@ -560,7 +565,7 @@ write_tsv(TABLE_SIII_H2IND, file="Output/TABLE_SIII_H2IND.tsv")
 TABLE_SIII_H2DEP <- filter(TABLES_APPENDIX_III, Model == "H2-Dependent")
 write_tsv(TABLE_SIII_H2DEP, file="Output/TABLE_SIII_H2DEP.tsv")
 
-DIFFERENCES_APPENDIX_III <- read_csv("Output/results_corhmm.csv", show_col_types=FALSE) |> 
+DIFFERENCES_APPENDIX_III <- list_rbind(map(corhmmFiles, ~read_csv(., show_col_types=FALSE))) |> 
                          filter(Variable %in% c("Alpha_F", "Alpha_M")) |>
                          mutate(Model = map2_chr(HiddenStates_T1, Dependence, classifyModel)) |>
                          filter(grepl("-Dependent", Model)) |>  
