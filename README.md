@@ -27,7 +27,7 @@ Analysis scripts (in the Scripts/ directory):
 6. 6_tables_and_figures.sh (generates MS tables and figures; requires all results from Scripts 1-5)
 
 ### Software requirements
-Scripts are written for Unix bash (Ubuntu) and R v4.3.1. See scripts and manuscript for packages and software citations. Bash scripts were originally run with Yale HPC resources ([McClearly cluster] (https://docs.ycrc.yale.edu/clusters/mccleary/)) using [slurm](https://slurm.schedmd.com/documentation.html) and (Dead Simple Queue)[https://github.com/ycrc/dSQ/tree/master]
+Scripts are written for Unix bash (Ubuntu) and R v4.3.1. See scripts and manuscript for packages and software citations. Bash scripts were originally run with Yale HPC resources ([McClearly cluster](https://docs.ycrc.yale.edu/clusters/mccleary/)) using [slurm](https://slurm.schedmd.com/documentation.html) and [Dead Simple Queue](https://github.com/ycrc/dSQ/tree/master)
 
 Required R packages can be installed in R with:
 ```R
